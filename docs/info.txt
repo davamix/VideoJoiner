@@ -1,0 +1,24 @@
+# Important: All videos must have the same size and codecs (audio / video) before join.
+
+1. Re-encode the videos
+
+ffmpeg -i .\intro.mp4 -acodec aac -vcodec libx264 -s 1920x1080 -r 60 -strict experimental .\intro_enc.mp4
+
+--> -vcodec: qtlre (allow transparency)
+--> ffmpeg -i .\clip1.mp4 -acodec aac -vcodec qtrle -s 1280x720 -r 30 -b:v 64k -minrate 64k -maxrate 64k -bufsize 64k -strict experimental .\clip1.mov
+--> -s: 1280x720
+--> -r: 24, 30...
+
+2. Create a silent track and concatenate the videos using that dummy audio track.
+
+ffmpeg -i .\intro_enc.mp4 -i .\cam1_enc.mp4 -f lavfi -t 0.1 -i anullsrc -filter_complex "[0:v:0][2:a][1:v:0][2:a] concat=n=2:v=1:a=1 [v][a]" -map "[v]" -map "[a]" out.mp4
+
+
+## Create the installer with PyInstaller
+
+pytinstaller --add-data "input;input" --add-data "tools;tools" .\VideoJoiner.py
+
+Optional params:
+-> -F: Create an standalone executable
+-> --noconsole: Don't show the terminal when the application is running
+-> --icon=favicon.ico: Set the applciation icon on title bar
