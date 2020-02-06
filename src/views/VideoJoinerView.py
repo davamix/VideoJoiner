@@ -8,7 +8,7 @@
 
 import os
 from functools import partial
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWidgets import QFileDialog
 
@@ -23,8 +23,10 @@ class Ui_MainWindow(QWidget):
         MainWindow.setMinimumSize(QtCore.QSize(480, 240))
         MainWindow.setMaximumSize(QtCore.QSize(480, 240))
         MainWindow.setAnimated(True)
-        MainWindow.setTabShape(QtWidgets.QTabWidget.Rounded)
-        MainWindow.setDockOptions(QtWidgets.QMainWindow.AllowTabbedDocks|QtWidgets.QMainWindow.AnimatedDocks)
+        icon_path = os.path.join(os.getcwd(), "images", "256x256.png")
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(icon_path), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.txtVideoPath = QtWidgets.QLineEdit(self.centralwidget)
@@ -55,7 +57,7 @@ class Ui_MainWindow(QWidget):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Video Joiner"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Únicos Gaming :: Clips"))
         self.btnSelectVideo.setText(_translate("MainWindow", "Select video"))
         self.btnJoin.setText(_translate("MainWindow", "Join"))
         self.btnOpenFolder.setText(_translate("MainWindow", "Open folder"))
@@ -69,60 +71,63 @@ class VideoJoinerView(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.setupUi(self)
 
-        self.configureSignals()
+        self.configure_signals()
 
         #self.output_path = ''
 
-    def configureSignals(self):
+    def configure_signals(self):
         # GUI signals
-        self.btnSelectVideo.clicked.connect(self.openFileDialog)
+        self.btnSelectVideo.clicked.connect(self.open_file_dialog)
         self.btnJoin.clicked.connect(lambda: self._viewmodel.start(self.txtVideoPath.text()))
-        self.btnOpenFolder.clicked.connect(self._viewmodel.openExplorer)
+        self.btnOpenFolder.clicked.connect(self._viewmodel.open_explorer)
 
         # Viewmodel signals
-        self._viewmodel.onLog.connect(self.writeLog)
-        self._viewmodel.onJobStarted.connect(self.jobStarted)
-        self._viewmodel.onJobFinished.connect(self.jobFinished)
-        self._viewmodel.onConvertStarted.connect(partial(self.processStarted, "Conversion"))
-        self._viewmodel.onConvertFinished.connect(partial(self.processFinished, "Conversion"))
-        self._viewmodel.onJoinStarted.connect(partial(self.processStarted, "Join"))
-        self._viewmodel.onJoinFinished.connect(partial(self.processFinished, "Join"))
-        self._viewmodel.onError.connect(self.writeLog)
+        self._viewmodel.onLog.connect(self.write_log)
+        self._viewmodel.onJobStarted.connect(self.job_started)
+        self._viewmodel.onJobFinished.connect(self.job_finished)
+        self._viewmodel.onConvertStarted.connect(partial(self.process_started, "Conversion"))
+        self._viewmodel.onConvertFinished.connect(partial(self.process_finished, "Conversion"))
+        self._viewmodel.onJoinStarted.connect(partial(self.process_started, "Join"))
+        self._viewmodel.onJoinFinished.connect(partial(self.process_finished, "Join"))
+        # TODO: Subscribe to onJoinOutro
+        
+        self._viewmodel.onError.connect(self.write_log)
 
-    def openFileDialog(self):
+    def open_file_dialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
 
-        filename, _ = QFileDialog.getOpenFileName(self, "Select video", "", "Video files (*.mp4)", options=options)
+        filename, _ = QFileDialog.getOpenFileName(self, "Select video", "", "MP4 files (*.mp4);; MOV files (*.mov)", options=options)
 
         if filename:
             self.txtVideoPath.setText(filename)
 
-    def enableControls(self, isEnable):
+    def enable_controls(self, isEnable):
         self.txtVideoPath.setEnabled(isEnable)
         self.btnSelectVideo.setEnabled(isEnable)
         self.btnJoin.setEnabled(isEnable)
 
     @QtCore.pyqtSlot(str)
-    def writeLog(self, message):
+    def write_log(self, message):
         self.txtLog.appendPlainText(message)
 
     @QtCore.pyqtSlot()
-    def jobStarted(self):
-        self.enableControls(False)
+    def job_started(self):
+        self.enable_controls(False)
 
     @QtCore.pyqtSlot()
-    def jobFinished(self):
-        self.enableControls(True)
+    def job_finished(self):
+        self.write_log(f"\nClip available on:\n {self._viewmodel.output_path}")
+        self.enable_controls(True)
         
         if os.path.exists(self._viewmodel.output_path):
             self.btnOpenFolder.setEnabled(True)
 
     @QtCore.pyqtSlot(str)
-    def processStarted(self, value):
-        self.writeLog(f"Starting {value} process")
+    def process_started(self, value):
+        self.write_log(f"Starting {value} process")
     
     @QtCore.pyqtSlot(str)
-    def processFinished(self, value):
-        self.writeLog(f"Process {value} finished")
+    def process_finished(self, value):
+        self.write_log(f"Process {value} finished")
 
