@@ -3,5 +3,3 @@ build/
 dist/
 
 tools/
-
-*.spec
