@@ -110,7 +110,7 @@ class VideoJoinerViewModel(QtCore.QObject):
         self.process.errorOccurred.connect(self.log_error)
 
         try:
-            self.process.start(self.ffmpeg_path, ["-y", "-i", videoPath, "-acodec", "aac", "-vcodec", "qtrle", "-s", "1280x720", "-r", "30", "-b:v", "64k", "-minrate", "64k", "-maxrate", "64k", "-strict", "experimental", self.clip_encoded_path])
+            self.process.start(self.ffmpeg_path, ["-y", "-i", videoPath, "-ac", "2", "-acodec", "aac", "-vcodec", "qtrle", "-s", "1280x720", "-r", "30", "-b:v", "64k", "-minrate", "64k", "-maxrate", "64k", "-strict", "experimental", self.clip_encoded_path])
         except:
             print(sys.exc_info())
 
@@ -136,7 +136,7 @@ class VideoJoinerViewModel(QtCore.QObject):
     Remove the temporary files
     '''
     def remove_temp_files(self):
-        self.write_log("Removing temporary files...")
+        self.write_log("Borrando archivos temporales...")
 
         # Remove all tmp files
         #for f in [self.clip_encoded_path, self.intro_joined_video_path, self.outro_joined_video_path]:
@@ -145,7 +145,7 @@ class VideoJoinerViewModel(QtCore.QObject):
             self.write_log(f"Removing {path}...")
             path.unlink()
 
-        self.write_log("All temporary files has been removed.")
+        self.write_log("Todos los arhivos temporales han sido borrados.")
 
         self.run_jobs()
 
@@ -154,7 +154,7 @@ class VideoJoinerViewModel(QtCore.QObject):
     '''
     def open_explorer(self):
         if not self.output_path:
-            self.onError.emit("Output file not found.")
+            self.onError.emit("No se ha encontrado el archivo.")
             return
             
         self.process =  QtCore.QProcess(self)

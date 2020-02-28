@@ -17,6 +17,8 @@ ffmpeg -i .\intro_enc.mp4 -i .\cam1_enc.mp4 -f lavfi -t 0.1 -i anullsrc -filter_
 ## Create the installer with PyInstaller
 
 pyinstaller --add-data "input;input" --add-data "tools;tools" .\VideoJoiner.py
+or
+pyinstaller .\VideoJoiner.spec
 
 Optional params:
 -> -F: Create an standalone executable
@@ -51,13 +53,6 @@ ffmpeg -i .\clip1.mov -i .\intro.mov -filter_complex "[1:v][0:v]scale2ref=iw:ih[
 
 # Sound delayed (conversion don't finish, but the output works)
 ffmpeg -i .\clip1.mov -i .\intro.mov -filter_complex "[1:v][0:v]scale2ref=iw:ih[intro][clip], [clip]setpts=PTS+3/TB, fps=30[delayed], [0:a]adelay=3000|3000, apad[clipa]; [delayed][intro]overlay=0:0[out]" -map [out] -map [clipa] -c:v libx264 -crf 18 -pix_fmt yuv420p output.mp4
-
-## TODO
-[x] - Convertir outro AVI a MOV
-- Añadir outro en el proceso de join 
-- Cambio de nombre de la aplicacion
-- Icono de la aplicacion
-- Implementar comando Join
 
 # Join 3 videos
 ffmpeg -i .\clip1.mov -i .\intro.mov -i .\outro.mov -filter_complex "[1:v]setpts=PTS-3/TB[delay]; [1:v]scale2ref[1:v][0:v]; [0:v][delay]overlay=0:0[over]; [2:v]setpts=PTS+16/TB[outdelay]; [over][outdelay]overlay=0:0" -c:v qtrle -crf 18 output.mov
